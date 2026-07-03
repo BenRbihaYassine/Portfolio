@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+{% block title %}Accueil — Détection des Transactions Suspectes{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ===== HERO — BH Navy + Red accent ===== */
+  .hero {
+    background: var(--bh-navy);
+    padding: 7rem 0 6rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, rgba(204,0,0,0.18) 0%, transparent 68%);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 8%;
+    width: 340px; height: 340px;
+    background: radial-gradient(circle, rgba(26,95,173,0.18) 0%, transparent 68%);
+    border-radius: 50%;
+  }
+
+  /* Thin red top bar — BH signature */
+  .hero-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--bh-red);
+  }
+
+  .hero-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(204,0,0,0.15);
+    border: 1px solid rgba(204,0,0,0.35);
+    color: #FF6666;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+  }
+  .hero-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--bh-red);
+    border-radius: 50%;
+  }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: 3.2rem;
+    color: var(--bh-white);
+    line-height: 1.15;
+    margin-bottom: 1.25rem;
+    max-width: 720px;
+  }
+  .hero h1 span { color: #FF4D4D; }
+
+  .hero-desc {
+    font-size: 17px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.75;
+    margin-bottom: 2.5rem;
+    max-width: 580px;
+  }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+  .hero-btn-secondary {
+    border: 1.5px solid rgba(255,255,255,0.28) !important;
+    color: var(--bh-white) !important;
+  }
+  .hero-btn-secondary:hover {
+    background: rgba(255,255,255,0.1) !important;
+    border-color: rgba(255,255,255,0.5) !important;
+  }
+
+  /* ===== KPI ===== */
+  .kpi-section {
+    padding: 4rem 0;
+    background: var(--bh-white);
+    border-bottom: 1px solid var(--bh-gray);
+  }
+
+  /* ===== FEATURES ===== */
+  .features { padding: 5rem 0; background: var(--bh-off-white); }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .feature-card {
+    background: var(--bh-white);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    border: 1px solid var(--bh-gray);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--bh-red);
+    border-top: 3px solid var(--bh-red);
+  }
+  .feature-icon {
+    width: 52px; height: 52px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.25rem;
+  }
+  .feature-icon.blue   { background: #E8F0FB; color: #1A5FAD; }
+  .feature-icon.red    { background: #FDECEA; color: var(--bh-red); }
+  .feature-icon.amber  { background: #FEF3E2; color: #B45309; }
+  .feature-icon.green  { background: #E6F4EC; color: #1A7A4A; }
+  .feature-icon.navy   { background: rgba(11,31,58,0.07); color: var(--bh-navy); }
+
+  .feature-card h3 { font-size: 17px; font-weight: 600; color: var(--bh-navy); margin-bottom: 8px; }
+  .feature-card p  { font-size: 14px; color: var(--bh-gray-dark); line-height: 1.65; }
+  .feature-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 1rem;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--bh-red);
+  }
+  .feature-link svg { transition: transform var(--transition); }
+  .feature-card:hover .feature-link svg { transform: translateX(4px); }
+
+  /* ===== TIMELINE ===== */
+  .timeline-section { padding: 5rem 0; background: var(--bh-white); }
+  .timeline {
+    display: flex;
+    gap: 0;
+    margin-top: 3rem;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 28px; left: 0; right: 0;
+    height: 2px;
+    background: var(--bh-gray);
+    z-index: 0;
+  }
+  .timeline-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .tl-dot {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    border: 3px solid var(--bh-white);
+    box-shadow: var(--shadow-sm);
+  }
+  .tl-dot.done    { background: var(--bh-navy); color: var(--bh-white); }
+  .tl-dot.current { background: var(--bh-red); color: var(--bh-white); box-shadow: 0 0 0 5px rgba(204,0,0,0.18); }
+  .tl-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--bh-navy); margin-bottom: 4px; }
+  .tl-desc  { font-size: 12px; color: var(--bh-gray-dark); }
+
+  /* ===== CTA ===== */
+  .cta-section {
+    padding: 5rem 0;
+    background: var(--bh-navy);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--bh-red);
+  }
+  .cta-section::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(204,0,0,0.1) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .cta-section .container { position: relative; z-index: 1; }
+  .cta-section h2 {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    color: var(--bh-white);
+    margin-bottom: 1rem;
+  }
+  .cta-section p {
+    font-size: 16px;
+    color: rgba(255,255,255,0.58);
+    max-width: 500px;
+    margin: 0 auto 2rem;
+  }
+
+  /* ===== SECTION LABEL (rouge BH) ===== */
+  .section-label {
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--bh-red);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  /* ===== FADE IN ===== */
+  .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 900px) {
+    .hero h1 { font-size: 2.2rem; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
+    .timeline { flex-wrap: wrap; gap: 2rem; }
+    .timeline::before { display: none; }
+    .timeline-step { flex: 0 0 calc(33% - 1rem); }
+  }
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 1.8rem; }
+    .features-grid { grid-template-columns: 1fr; }
+    .timeline-step { flex: 0 0 calc(50% - 1rem); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bar"></div>
+  <div class="hero-inner">
+    <div class="hero-tag">Système de Détection de Fraude — BH Bank</div>
+    <h1>Détectez les <span>transactions suspectes</span> en temps réel</h1>
+    <p class="hero-desc">
+      Système intelligent de détection de fraude bancaire basé sur
+      XGBoost, un chatbot RAG et une analyse visuelle avancée
+      des comportements suspects.
+    </p>
+    <div class="hero-actions">
+      <a href="/simulation" class="btn btn-accent">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M6 8l2 2 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Lancer une simulation
+      </a>
+      <a href="/chatbot" class="btn btn-outline hero-btn-secondary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 3a1 1 0 011-1h8a1 1 0 011 1v6a1 1 0 01-1 1H5l-2 2V3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        Chatbot
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- KPI -->
+<section class="kpi-section">
+  <div class="container">
+    <div class="grid-4 fade-in">
+      <div class="kpi-card">
+        <div class="kpi-label">Transactions analysées</div>
+        <div class="kpi-value">11 309</div>
+        <div class="kpi-desc">dans le jeu de données</div>
+      </div>
+      <div class="kpi-card danger">
+        <div class="kpi-label">Comptes suspects</div>
+        <div class="kpi-value">320</div>
+        <div class="kpi-desc">Détectés comme atypiques</div>
+      </div>
+      <div class="kpi-card success">
+        <div class="kpi-label">Comptes surveillés</div>
+        <div class="kpi-value">2 839</div>
+        <div class="kpi-desc">profils comportementaux</div>
+      </div>
+      <div class="kpi-card accent">
+        <div class="kpi-label">Villes couvertes</div>
+        <div class="kpi-value">26</div>
+        <div class="kpi-desc">gouvernorats tunisiens</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-label">Fonctionnalités</span>
+      <h2 class="section-title">Un système complet de détection</h2>
+    </div>
+    <div class="features-grid">
+
+      <a href="/simulation" class="feature-card fade-in">
+        <div class="feature-icon red">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Simulation en temps réel</h3>
+        <p>Saisissez les caractéristiques d'une transaction et obtenez instantanément une prédiction : normale ou suspecte.</p>
+        <span class="feature-link">Essayer la simulation
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </a>
+
+      <a href="/chatbot" class="feature-card fade-in">
+        <div class="feature-icon blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v9a2 2 0 01-2 2H7l-4 4V5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M8 10h8M8 13h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Chatbot + Voix</h3>
+        <p>Posez vos questions sur les anomalies bancaires par texte ou par voix. Le chatbot répond depuis votre base de connaissances.</p>
+        <span class="feature-link">Ouvrir le chatbot
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </a>
+
+      <a href="/dashboard" class="feature-card fade-in">
+        <div class="feature-icon amber">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="7" height="9" rx="1" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="14" y="3" width="7" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="14" y="12" width="7" height="9" rx="1" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="3" y="16" width="7" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <h3>Dashboard analytique</h3>
+        <p>Visualisez les tendances, la distribution géographique et les patterns temporels des transactions suspectes.</p>
+        <span class="feature-link">Voir le dashboard
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </a>
+
+      <a href="/about" class="feature-card fade-in">
+        <div class="feature-icon navy">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Méthodologie CRISP-DM</h3>
+        <p>Un projet structuré en 6 phases : compréhension métier, données, préparation, modélisation, évaluation et déploiement.</p>
+        <span class="feature-link">En savoir plus
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </a>
+
+      <div class="feature-card fade-in" style="cursor:default;">
+        <div class="feature-icon green">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <h3>Détection intelligente (XGBoost)</h3>
+        <p>Modèle supervisé permettant de prédire automatiquement si une transaction est normale ou suspecte à partir de ses caractéristiques.</p>
+      </div>
+
+      <div class="feature-card fade-in" style="cursor:default;">
+        <div class="feature-icon blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <h3>26 gouvernorats</h3>
+        <p>Couverture géographique complète de la Tunisie avec détection des vélocités suspectes entre villes distantes.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CRISP-DM -->
+<section class="timeline-section">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-label">Méthodologie</span>
+      <h2 class="section-title">Phases CRISP-DM</h2>
+    </div>
+    <div class="timeline fade-in">
+      <div class="timeline-step">
+        <div class="tl-dot done">1</div>
+        <div class="tl-label">Compréhension</div>
+        <div class="tl-desc">Métier bancaire</div>
+      </div>
+      <div class="timeline-step">
+        <div class="tl-dot done">2</div>
+        <div class="tl-label">Données</div>
+        <div class="tl-desc">EDA & exploration</div>
+      </div>
+      <div class="timeline-step">
+        <div class="tl-dot done">3</div>
+        <div class="tl-label">Préparation</div>
+        <div class="tl-desc">Features engineering</div>
+      </div>
+      <div class="timeline-step">
+        <div class="tl-dot done">4</div>
+        <div class="tl-label">Modélisation</div>
+        <div class="tl-desc">Approches ML & DL</div>
+      </div>
+      <div class="timeline-step">
+        <div class="tl-dot done">5</div>
+        <div class="tl-label">Évaluation</div>
+        <div class="tl-desc">Métriques & tests</div>
+      </div>
+      <div class="timeline-step">
+        <div class="tl-dot current">6</div>
+        <div class="tl-label">Déploiement</div>
+        <div class="tl-desc">Site web & API</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2>Prêt à tester le système ?</h2>
+    <p>Simulez une transaction et découvrez si elle est détectée comme suspecte par le modèle XGBoost.</p>
+    <a href="/simulation" class="btn btn-accent" style="font-size:15px;padding:14px 32px;">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M9 2v14M2 9h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Lancer la simulation
+    </a>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Fade-in on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+{% endblock %}

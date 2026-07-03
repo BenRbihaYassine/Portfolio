@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Détection des Transactions Suspectes{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ===== PAGE HEADER ===== */
+  .dash-header {
+    background: var(--navy);
+    padding: 3.5rem 0 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .dash-header::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(30,95,173,0.28) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .dash-header::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 5%;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(232,160,32,0.10) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .dash-header .container { position: relative; z-index: 1; }
+  .dash-header-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .dash-header h1 {
+    font-family: var(--font-display);
+    font-size: 2.3rem;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+  .dash-header p {
+    font-size: 15px;
+    color: rgba(255,255,255,0.65);
+    max-width: 560px;
+  }
+  .dash-header-meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .meta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+  }
+  .meta-badge span { color: var(--accent); font-weight: 600; }
+
+  /* ===== KPI BAR ===== */
+  .kpi-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-light);
+    padding: 1.75rem 0;
+  }
+  .kpi-bar-inner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .kpi-item {
+    padding: 0 2rem;
+    border-right: 1px solid var(--gray-light);
+    text-align: center;
+  }
+  .kpi-item:last-child { border-right: none; }
+  .kpi-item-value {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--navy);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .kpi-item-value.danger  { color: var(--danger); }
+  .kpi-item-value.success { color: var(--success); }
+  .kpi-item-value.accent  { color: #B45309; }
+  .kpi-item-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  /* ===== MAIN LAYOUT ===== */
+  .dash-body {
+    padding: 2.5rem 0 4rem;
+  }
+
+  /* ===== POWERBI SECTION ===== */
+  .pbi-section {
+    margin-bottom: 2rem;
+  }
+  .pbi-card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-light);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .pbi-card-header {
+    padding: 1.25rem 1.75rem;
+    border-bottom: 1px solid var(--gray-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .pbi-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pbi-icon {
+    width: 36px; height: 36px;
+    background: #FEF3E2;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pbi-card-title h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 2px;
+  }
+  .pbi-card-title p {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .pbi-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pbi-fullscreen-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--blue);
+    background: #E8F0FB;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition);
+    text-decoration: none;
+    font-family: var(--font-main);
+  }
+  .pbi-fullscreen-btn:hover { background: var(--blue); color: var(--white); }
+
+  /* iframe wrapper — ratio 16:9 responsive */
+  .pbi-iframe-wrapper {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* 16:9 */
+    height: 0;
+    overflow: hidden;
+    background: var(--off-white);
+  }
+  .pbi-iframe-wrapper iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+  /* Overlay de chargement */
+  .pbi-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: var(--off-white);
+    z-index: 2;
+    transition: opacity 0.5s ease;
+  }
+  .pbi-loading.hidden { opacity: 0; pointer-events: none; }
+  .pbi-spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--gray-light);
+    border-top-color: #F2C94C; /* couleur Power BI */
+    border-radius: 50%;
+    animation: pbi-spin 0.9s linear infinite;
+  }
+  @keyframes pbi-spin { to { transform: rotate(360deg); } }
+  .pbi-loading p {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .pbi-footer {
+    padding: 0.875rem 1.75rem;
+    border-top: 1px solid var(--gray-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .pbi-footer-left {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pbi-footer-right {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .pbi-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: pulse-dot 2s ease infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* ===== INFO CARDS ROW ===== */
+  .info-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .info-card-dash {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-light);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+  }
+  .info-card-dash-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .info-card-icon {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .info-card-icon.blue  { background: #E8F0FB; color: var(--blue); }
+  .info-card-icon.red   { background: #FDECEA; color: var(--danger); }
+  .info-card-icon.green { background: #E6F4EC; color: var(--success); }
+  .info-card-dash h3 { font-size: 14px; font-weight: 600; color: var(--navy); }
+  .info-card-dash ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .info-card-dash li {
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+  .info-card-dash li::before {
+    content: '→';
+    color: var(--blue);
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .kpi-bar-inner { grid-template-columns: repeat(2, 1fr); }
+    .kpi-item { border-right: none; border-bottom: 1px solid var(--gray-light); padding: 1rem; }
+    .kpi-item:nth-child(2n) { border-right: none; }
+    .info-row { grid-template-columns: 1fr; }
+    .dash-header h1 { font-size: 1.8rem; }
+  }
+  @media (max-width: 600px) {
+    .kpi-bar-inner { grid-template-columns: 1fr 1fr; }
+    .pbi-card-header { flex-direction: column; align-items: flex-start; }
+    .dash-header-meta { gap: 0.75rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+<section class="dash-header">
+  <div class="container">
+    <div class="dash-header-label">📊 Analyse exploratoire</div>
+    <h1>Dashboard interactif</h1>
+    <p>Visualisez la distribution des transactions, les comportements suspects et les tendances géographiques sur l'ensemble du jeu de données.</p>
+    <div class="dash-header-meta">
+      <div class="meta-badge">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M6 3.5v2.5l1.5 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        Données <span>2024 / 2025</span>
+      </div>
+      <div class="meta-badge">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect x="1.5" y="1.5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M4 7.5l1.5-2 1.5 1.5L9 4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Généré avec <span>Power BI</span>
+      </div>
+      <div class="meta-badge">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M6 1.5C3.5 1.5 1.5 3.5 1.5 6S3.5 10.5 6 10.5 10.5 8.5 10.5 6 8.5 1.5 6 1.5z" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M4 6l1.5 1.5L8 4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>26</span> gouvernorats tunisiens
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KPI BAR -->
+<div class="kpi-bar">
+  <div class="container">
+    <div class="kpi-bar-inner">
+      <div class="kpi-item">
+        <div class="kpi-item-value">11 309</div>
+        <div class="kpi-item-label">Transactions analysées</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-item-value danger">320</div>
+        <div class="kpi-item-label">Comptes suspects</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-item-value success">2 839</div>
+        <div class="kpi-item-label">Comptes surveillés</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-item-value accent">2.8%</div>
+        <div class="kpi-item-label">Taux de fraude détecté</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD BODY -->
+<div class="dash-body">
+  <div class="container">
+
+    <!-- POWER BI EMBED -->
+    <div class="pbi-section">
+      <div class="pbi-card">
+        <div class="pbi-card-header">
+          <div class="pbi-card-title">
+            <div class="pbi-icon">
+              <!-- Power BI logo color -->
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="2" y="11" width="3" height="7" rx="1" fill="#F2C94C"/>
+                <rect x="7" y="7"  width="3" height="11" rx="1" fill="#F2994A"/>
+                <rect x="12" y="3" width="3" height="15" rx="1" fill="#EB5757"/>
+                <rect x="2" y="2"  width="3" height="7"  rx="1" fill="#F2C94C" opacity="0.4"/>
+              </svg>
+            </div>
+            <div>
+              <h2>Analyse exploratoire des données (EDA)</h2>
+              <p>Rapport Power BI — transactions bancaires tunisiennes</p>
+            </div>
+          </div>
+          <div class="pbi-actions">
+            <a href="https://app.powerbi.com/view?r=eyJrIjoiMWE5MTg1ZmMtYmEwOS00MjE0LWFkNjQtMjM3Y2YyMDgwY2FhIiwidCI6ImRiZDY2NjRkLTRlYjktNDZlYi05OWQ4LTVjNDNiYTE1M2M2MSIsImMiOjl9"
+               target="_blank" rel="noopener" class="pbi-fullscreen-btn">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M5 2H2v3M9 2h3v3M5 12H2V9M9 12h3V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Plein écran
+            </a>
+          </div>
+        </div>
+
+        <!-- iframe Power BI -->
+        <div class="pbi-iframe-wrapper">
+          <div class="pbi-loading" id="pbi-loading">
+            <div class="pbi-spinner"></div>
+            <p>Chargement du rapport Power BI…</p>
+          </div>
+          <iframe
+            title="EDA — Détection des Transactions Suspectes"
+            src="https://app.powerbi.com/view?r=eyJrIjoiMWE5MTg1ZmMtYmEwOS00MjE0LWFkNjQtMjM3Y2YyMDgwY2FhIiwidCI6ImRiZDY2NjRkLTRlYjktNDZlYi05OWQ4LTVjNDNiYTE1M2M2MSIsImMiOjl9"
+            frameborder="0"
+            allowfullscreen="true"
+            id="pbi-iframe"
+            onload="document.getElementById('pbi-loading').classList.add('hidden')"
+          ></iframe>
+        </div>
+
+        <div class="pbi-footer">
+          <div class="pbi-footer-left">
+            <div class="pbi-dot"></div>
+            Rapport en ligne — actualisé depuis Power BI Service
+          </div>
+          <div class="pbi-footer-right">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

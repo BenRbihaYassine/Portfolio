@@ -1,0 +1,926 @@
+{% extends "base.html" %}
+{% block title %}Simulation — Détection des Transactions Suspectes{% endblock %}
+ 
+{% block extra_head %}
+<style>
+  .sim-layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 2rem;
+    align-items: start;
+  }
+  .panel {
+    background: var(--white);
+    border: 1px solid var(--gray-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .panel-header {
+    background: var(--navy);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--white);
+  }
+  .panel-body { padding: 1.5rem; }
+ 
+  .compte-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--gray-light);
+  }
+ 
+  .tx-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; }
+  .tx-item {
+    background: var(--off-white);
+    border: 1px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    position: relative;
+  }
+  .tx-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .tx-num {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .btn-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--gray);
+    padding: 2px;
+    border-radius: 4px;
+    transition: color var(--transition);
+    display: flex;
+    align-items: center;
+  }
+  .btn-remove:hover { color: var(--danger); }
+  .tx-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .tx-grid .full { grid-column: span 2; }
+ 
+  /* ── Tabs mode ────────────────────────────────────────── */
+  .mode-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--gray-light);
+    margin-bottom: 1.5rem;
+  }
+  .mode-tab {
+    flex: 1;
+    padding: 0.875rem 1rem;
+    border: none;
+    background: none;
+    font-family: var(--font-main);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all var(--transition);
+  }
+  .mode-tab:hover { color: var(--navy); }
+  .mode-tab.active {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+    font-weight: 600;
+  }
+
+  /* ── Zone upload fichier ───────────────────────────────── */
+  .upload-zone {
+    border: 2px dashed var(--gray-light);
+    border-radius: var(--radius-md);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    background: var(--off-white);
+    margin-bottom: 1rem;
+  }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: #FEF3E2;
+  }
+  .upload-zone-icon {
+    width: 52px; height: 52px;
+    background: #FEF3E2;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+    color: #B45309;
+  }
+  .upload-zone h3 {
+    font-size: 15px; font-weight: 600;
+    color: var(--navy); margin-bottom: 6px;
+  }
+  .upload-zone p {
+    font-size: 13px; color: var(--text-muted); margin-bottom: 12px;
+  }
+  .upload-zone small {
+    font-size: 11px; color: var(--gray);
+  }
+  .btn-browse {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 18px;
+    background: var(--accent); color: var(--navy);
+    border: none; border-radius: var(--radius-sm);
+    font-family: var(--font-main); font-size: 13px;
+    font-weight: 600; cursor: pointer;
+    transition: all var(--transition);
+    margin-bottom: 8px;
+  }
+  .btn-browse:hover { background: var(--accent-light); }
+
+  /* Badge fichier chargé */
+  .file-loaded-badge {
+    display: none;
+    align-items: center; gap: 10px;
+    background: #E6F4EC;
+    border: 1px solid #AADBBF;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 1rem;
+    font-size: 13px;
+  }
+  .file-loaded-badge.visible { display: flex; }
+  .file-loaded-badge strong { color: var(--navy); }
+  .file-loaded-badge span { color: var(--text-muted); flex: 1; }
+  .btn-remove-file {
+    background: none; border: none;
+    color: var(--gray); cursor: pointer;
+    padding: 2px; border-radius: 4px;
+    transition: color var(--transition);
+    display: flex; align-items: center;
+  }
+  .btn-remove-file:hover { color: var(--danger); }
+
+  /* Format hint */
+  .format-hint {
+    background: var(--off-white);
+    border: 1px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  .format-hint strong { color: var(--navy); display: block; margin-bottom: 4px; }
+  .format-hint code {
+    background: var(--gray-light);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: var(--navy);
+  }
+ 
+  /* ── Bouton ajouter (mode manuel) ─────────────────────── */
+  .btn-add {
+    width: 100%;
+    padding: 10px;
+    border: 2px dashed var(--gray-light);
+    background: none;
+    border-radius: var(--radius-sm);
+    color: var(--blue);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-main);
+  }
+  .btn-add:hover {
+  border-color: var(--blue);
+  background: #E8F0FB;
+}
+
+.btn-predict {
+  width: 100%;
+  padding: 14px;
+  background: var(--navy);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  transition: background var(--transition);
+  font-family: var(--font-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-predict:hover { background: var(--navy-light); }
+.btn-predict:disabled { opacity: 0.6; cursor: not-allowed; }
+
+
+.btn-refresh {
+  width: 100%;
+  padding: 10px;
+  background: none;
+  border: 1.5px solid var(--gray-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: all var(--transition);
+  font-family: var(--font-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-refresh:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: #E8F0FB;
+}
+ 
+  .result-box {
+    border-radius: var(--radius-md);
+    padding: 1.75rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    border: 2px solid transparent;
+  }
+  .result-box.suspect {
+    background: #FDECEA;
+    border-color: #F09595;
+  }
+  .result-box.normal {
+    background: #E6F4EC;
+    border-color: #97C459;
+  }
+  .result-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+  }
+  .result-box.suspect .result-icon { background: #F7C1C1; }
+  .result-box.normal  .result-icon { background: #C0DD97; }
+  .result-label {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+  }
+  .result-box.suspect .result-label { color: var(--danger); }
+  .result-box.normal  .result-label { color: var(--success); }
+  .result-confidence {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .confidence-bar {
+    height: 6px;
+    background: var(--gray-light);
+    border-radius: 3px;
+    margin-top: 12px;
+    overflow: hidden;
+  }
+  .confidence-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+  .result-box.suspect .confidence-fill { background: var(--danger); }
+  .result-box.normal  .confidence-fill { background: var(--success); }
+ 
+  .indicators-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .ind-card {
+    background: var(--off-white);
+    border: 1px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 0.875rem;
+  }
+  .ind-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .ind-value { font-size: 17px; font-weight: 600; color: var(--navy); }
+  .ind-card.alert { border-color: #F7C1C1; background: #FDECEA; }
+  .ind-card.alert .ind-value { color: var(--danger); }
+ 
+  .placeholder {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  .placeholder svg { margin: 0 auto 1rem; opacity: 0.3; }
+  .placeholder p { font-size: 14px; }
+ 
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+ 
+  @media(max-width:900px) {
+    .sim-layout { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+ 
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-label">Simulation</div>
+    <h1>Tester un compte</h1>
+    <p>Saisissez les transactions manuellement ou importez un fichier pour prédire si le compte est suspect.</p>
+  </div>
+</div>
+
+<div class="sim-layout">
+
+  <!-- GAUCHE : formulaire -->
+  <div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Transactions du compte</span>
+        <span id="tx-counter" style="font-size:13px;color:rgba(255,255,255,0.6);">0 transaction(s)</span>
+      </div>
+      <div class="panel-body">
+
+        <!-- Numéro de compte -->
+        <div class="compte-row">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Numéro de compte</label>
+            <input type="text" id="compte" class="form-control" placeholder="ex: 14010123110699999232"/>
+          </div>
+        </div>
+
+        <!-- TABS MODE -->
+        <div class="mode-tabs">
+          <button class="mode-tab active" id="tab-manuel" onclick="switchMode('manuel')">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <path d="M2 4h11M2 7.5h8M2 11h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Saisie manuelle
+          </button>
+          <button class="mode-tab" id="tab-fichier" onclick="switchMode('fichier')">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <path d="M7.5 10V3M5 5.5l2.5-2.5L10 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 11v1a1.5 1.5 0 001.5 1.5h8A1.5 1.5 0 0013 12v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Importer un fichier
+          </button>
+        </div>
+
+        <!-- ══ MODE MANUEL ══ -->
+        <div id="mode-manuel">
+          <div class="tx-list" id="tx-list"></div>
+          <button class="btn-add" onclick="addTransaction()">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            Ajouter une transaction
+          </button>
+        </div>
+
+        <!-- ══ MODE FICHIER ══ -->
+        <div id="mode-fichier" style="display:none;">
+
+          <!-- Badge fichier chargé -->
+          <div class="file-loaded-badge" id="file-loaded-badge">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="6.5" stroke="var(--success)" stroke-width="1.5"/>
+              <path d="M5 8l2 2 4-4" stroke="var(--success)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="file-loaded-text">Fichier chargé</span>
+            <button class="btn-remove-file" onclick="removeFile()" title="Supprimer le fichier">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Zone drag & drop -->
+          <div class="upload-zone" id="upload-zone"
+               onclick="document.getElementById('file-upload').click()"
+               ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+            <div class="upload-zone-icon">
+              <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+                <path d="M13 17V7M9 11l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 18v2a2 2 0 002 2h14a2 2 0 002-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3>Glissez votre fichier ici</h3>
+            <p>ou cliquez pour parcourir vos fichiers</p>
+            <button class="btn-browse" onclick="event.stopPropagation(); document.getElementById('file-upload').click()">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                <rect x="1" y="1" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.3"/>
+                <path d="M4 6.5h5M6.5 4v5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+              </svg>
+              Parcourir
+            </button>
+            <br><small>CSV ou Excel (.xlsx / .xls) — séparateur ; ou ,</small>
+          </div>
+          <input type="file" id="file-upload" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleFileUpload(event)"/>
+
+          <!-- Format attendu -->
+          <div class="format-hint">
+            <strong>Colonnes attendues dans le fichier :</strong>
+            <code>compte</code> &nbsp;<code>montant</code> &nbsp;<code>sens</code> &nbsp;<code>date_operation</code> &nbsp;<code>lieu</code> &nbsp;<code>motif</code>
+            <br><br>
+            
+          </div>
+        </div>
+
+        <!-- Boutons communs -->
+        <button class="btn-predict" id="btn-predict" onclick="predict()">
+          <span id="btn-text">Analyser le compte</span>
+          <div class="spinner" id="spinner"></div>
+        </button>
+
+        <button class="btn-refresh" onclick="refreshForm()">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <path d="M2 7.5a5.5 5.5 0 1 0 1.1-3.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 3v4.5h4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Nouveau compte (réinitialiser)
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- DROITE : résultat -->
+  <div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Résultat de l'analyse</span>
+      </div>
+      <div class="panel-body" id="result-panel">
+        <div class="placeholder">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2"/>
+            <path d="M24 16v8l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <p>Saisissez des transactions ou importez<br>un fichier et cliquez sur "Analyser le compte"</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info features -->
+    <div class="panel" style="margin-top:1rem;">
+      <div class="panel-header">
+        <span class="panel-title">Features calculées</span>
+      </div>
+      <div class="panel-body">
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem;">
+          Ces indicateurs sont automatiquement calculés à partir des transactions,
+          identiques aux features du modèle entraîné.
+        </p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          {% for f in ["nombres_transactions","montant_moyen","pourcentage_nocturne","pourcentage_weekend",
+                       "velocite_km_h","ratio_tpe","nombres_lieux","transactions_par_jour"] %}
+          <span class="badge badge-info">{{ f }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+ 
+{% block extra_scripts %}
+<script>
+const LIEUX = ["Tunis","Ariana","Ben Arous","Manouba","Nabeul","Zaghouan","Bizerte",
+               "Béja","Jendouba","Le Kef","Siliana","Sousse","Monastir","Mahdia",
+               "Sfax","Kairouan","Kasserine","Sidi Bouzid","Gabès","Médenine",
+               "Tataouine","Gafsa","Tozeur","Kébili","Autres"];
+
+let txCount       = 0;
+let currentMode   = "manuel";   // "manuel" | "fichier"
+let fileTransactions = [];      // transactions chargées depuis fichier
+
+// ── Switch mode ───────────────────────────────────────────────────────────────
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById("mode-manuel").style.display  = mode === "manuel"  ? "" : "none";
+  document.getElementById("mode-fichier").style.display = mode === "fichier" ? "" : "none";
+  document.getElementById("tab-manuel").classList.toggle("active",  mode === "manuel");
+  document.getElementById("tab-fichier").classList.toggle("active", mode === "fichier");
+  // Mettre à jour le compteur
+  if (mode === "fichier") {
+    const n = fileTransactions.length;
+    document.getElementById("tx-counter").textContent = n > 0 ? n + " transaction(s) chargée(s)" : "Aucun fichier";
+  } else {
+    updateCounter();
+  }
+}
+
+// ── Mode manuel : ajouter une transaction ─────────────────────────────────────
+function addTransaction() {
+  txCount++;
+  const list = document.getElementById("tx-list");
+  const div  = document.createElement("div");
+  div.className = "tx-item";
+  div.id = "tx-" + txCount;
+  div.innerHTML = `
+    <div class="tx-item-header">
+      <span class="tx-num">Transaction #${txCount}</span>
+      <button class="btn-remove" onclick="removeTransaction(${txCount})" title="Supprimer">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="tx-grid" style="grid-template-columns:1fr 1fr;">
+      <div class="form-group">
+        <label class="form-label">Montant (DT)</label>
+        <input type="number" class="form-control tx-montant" placeholder="ex: 1500" min="0" step="0.01"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sens</label>
+        <select class="form-control tx-sens">
+          <option value="D">Débit</option>
+          <option value="C">Crédit</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date & heure</label>
+        <input type="datetime-local" class="form-control tx-date"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lieu</label>
+        <select class="form-control tx-lieu">
+          ${LIEUX.map(l => `<option value="${l}">${l}</option>`).join("")}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type d'opération</label>
+        <select class="form-control tx-type-op">
+          <option value="VIR">Virement (VIR)</option>
+          <option value="RETRAIT">Retrait (RET)</option>
+          <option value="TPE">TPE / Paiement carte (TPE)</option>
+          <option value="CHEQUE">Chèque (CHQ)</option>
+          <option value="AUTRE">Autre</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Motif détail (optionnel)</label>
+        <input type="text" class="form-control tx-motif-detail" placeholder="ex: VIR.TN M. KHALIL"/>
+      </div>
+    </div>`;
+  list.appendChild(div);
+  updateCounter();
+  div.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function removeTransaction(id) {
+  const el = document.getElementById("tx-" + id);
+  if (el) { el.remove(); updateCounter(); }
+}
+
+function updateCounter() {
+  const n = document.querySelectorAll(".tx-item").length;
+  document.getElementById("tx-counter").textContent = n + " transaction(s)";
+}
+
+// ── Mode fichier : drag & drop + input ───────────────────────────────────────
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById("upload-zone").classList.add("drag-over");
+}
+function onDragLeave(e) {
+  document.getElementById("upload-zone").classList.remove("drag-over");
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById("upload-zone").classList.remove("drag-over");
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+
+async function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (file) await processFile(file);
+  event.target.value = ""; // reset pour permettre re-upload du même fichier
+}
+
+async function processFile(file) {
+  const ext = file.name.split(".").pop().toLowerCase();
+  try {
+    let rows = [];
+    if (ext === "csv") {
+      rows = await parseCSV(file);
+    } else if (ext === "xlsx" || ext === "xls") {
+      rows = await parseExcel(file);
+    } else {
+      alert("Format non supporté. Utilisez CSV ou Excel (.xlsx/.xls)");
+      return;
+    }
+
+    if (rows.length === 0) {
+      alert("Aucune ligne trouvée dans le fichier. Vérifiez le format.");
+      return;
+    }
+
+    fileTransactions = rows;
+
+    // Remplir le compte depuis la première ligne si disponible
+    if (rows[0].compte) {
+      document.getElementById("compte").value = rows[0].compte;
+    }
+
+    // Afficher le badge fichier chargé
+    const badge = document.getElementById("file-loaded-badge");
+    document.getElementById("file-loaded-text").innerHTML =
+      `<strong>${rows.length} transactions</strong> chargées depuis <em>${file.name}</em>`;
+    badge.classList.add("visible");
+
+    // Cacher la zone upload, mettre à jour le compteur
+    document.getElementById("upload-zone").style.display = "none";
+    document.getElementById("tx-counter").textContent = rows.length + " transaction(s) chargée(s)";
+
+  } catch(e) {
+    alert("Erreur lecture fichier : " + e.message);
+  }
+}
+
+function removeFile() {
+  fileTransactions = [];
+  document.getElementById("file-loaded-badge").classList.remove("visible");
+  document.getElementById("upload-zone").style.display = "";
+  document.getElementById("tx-counter").textContent = "Aucun fichier";
+  document.getElementById("compte").value = "";
+}
+
+// ── Parsers CSV / Excel ───────────────────────────────────────────────────────
+function parseCSV(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text    = e.target.result;
+        const lines   = text.trim().split("\n");
+        const sep     = lines[0].includes(";") ? ";" : ",";
+        const headers = lines[0].split(sep).map(h => h.trim().replace(/"/g,"").toLowerCase());
+        const rows    = [];
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          const vals = lines[i].split(sep).map(v => v.trim().replace(/"/g,""));
+          const obj  = {};
+          headers.forEach((h, idx) => { obj[h] = vals[idx] || ""; });
+          rows.push(normalizeRow(obj));
+        }
+        resolve(rows);
+      } catch(e) { reject(e); }
+    };
+    reader.onerror = () => reject(new Error("Lecture CSV échouée"));
+    reader.readAsText(file, "UTF-8");
+  });
+}
+
+async function parseExcel(file) {
+  if (typeof XLSX === "undefined") {
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js");
+  }
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const wb      = XLSX.read(e.target.result, { type: "array", cellDates: true });
+        const sheet   = wb.Sheets[wb.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+        const rows = jsonData.map(row => {
+          const lower = {};
+          Object.keys(row).forEach(k => { lower[k.toLowerCase().trim()] = row[k]; });
+          return normalizeRow(lower);
+        });
+        resolve(rows);
+      } catch(e) { reject(e); }
+    };
+    reader.onerror = () => reject(new Error("Lecture Excel échouée"));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+function normalizeRow(obj) {
+  const get = (...keys) => {
+    for (const k of keys) if (obj[k] !== undefined && obj[k] !== "") return obj[k];
+    return "";
+  };
+  let dateVal = get("date_operation","date","datetime","date operation","date opération");
+  if (dateVal instanceof Date) dateVal = dateVal.toISOString().slice(0,16);
+  else if (dateVal) dateVal = String(dateVal).replace("T"," ").substring(0,16);
+
+  return {
+    compte:         String(get("compte","account","num_compte") || ""),
+    montant:        parseFloat(get("montant","amount","montant_dt") || 0),
+    sens:           String(get("sens","sens_operation") || "D").toUpperCase().startsWith("C") ? "C" : "D",
+    date_operation: dateVal,
+    lieu:           String(get("lieu","ville","location","gouvernorat") || "Tunis"),
+    motif:          String(get("motif","motif_operation","libellé","libelle","description") || ""),
+  };
+}
+
+// ── Refresh ───────────────────────────────────────────────────────────────────
+function refreshForm() {
+  // Mode manuel
+  document.getElementById("tx-list").innerHTML = "";
+  txCount = 0;
+  // Mode fichier
+  fileTransactions = [];
+  document.getElementById("file-loaded-badge").classList.remove("visible");
+  document.getElementById("upload-zone").style.display = "";
+  // Commun
+  document.getElementById("compte").value = "";
+  document.getElementById("tx-counter").textContent = "0 transaction(s)";
+  document.getElementById("result-panel").innerHTML = `
+    <div class="placeholder">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2"/>
+        <path d="M24 16v8l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <p>Saisissez des transactions ou importez<br>un fichier et cliquez sur "Analyser le compte"</p>
+    </div>`;
+  // Revenir au mode manuel
+  switchMode("manuel");
+  addTransaction();
+}
+
+// ── Prédiction ────────────────────────────────────────────────────────────────
+async function predict() {
+  const compte = document.getElementById("compte").value.trim();
+  if (!compte) { alert("Veuillez saisir un numéro de compte."); return; }
+
+  let transactions = [];
+
+  if (currentMode === "fichier") {
+    // Mode fichier : utiliser les transactions chargées directement
+    if (fileTransactions.length === 0) {
+      alert("Veuillez d'abord importer un fichier.");
+      return;
+    }
+    // Injecter le numéro de compte saisi
+    transactions = fileTransactions.map(t => ({ ...t, compte }));
+
+  } else {
+    // Mode manuel : collecter les transactions saisies
+    const items = document.querySelectorAll(".tx-item");
+    if (items.length === 0) { alert("Ajoutez au moins une transaction."); return; }
+    let valid = true;
+    items.forEach(item => {
+      const montant = parseFloat(item.querySelector(".tx-montant").value);
+      const date    = item.querySelector(".tx-date").value;
+      const typeOp  = item.querySelector(".tx-type-op").value;
+      const motifDetail = item.querySelector(".tx-motif-detail").value;
+      const motif = typeOp === "TPE" ? ("TPE " + motifDetail).trim() : (typeOp + " " + motifDetail).trim();
+      if (!montant || !date) { valid = false; return; }
+      transactions.push({ compte, montant, sens: item.querySelector(".tx-sens").value,
+                          date_operation: date, lieu: item.querySelector(".tx-lieu").value, motif });
+    });
+    if (!valid) { alert("Veuillez remplir le montant et la date de chaque transaction."); return; }
+  }
+
+  const btn     = document.getElementById("btn-predict");
+  const spinner = document.getElementById("spinner");
+  const btnText = document.getElementById("btn-text");
+  btn.disabled  = true;
+  spinner.style.display = "block";
+  btnText.textContent   = "Analyse en cours...";
+
+  try {
+    const resp = await fetch("/api/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ transactions })
+    });
+    const data = await resp.json();
+    if (data.error) { alert("Erreur : " + data.error); return; }
+    showResult(data);
+  } catch(e) {
+    alert("Erreur de connexion à l'API.");
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = "none";
+    btnText.textContent   = "Analyser le compte";
+  }
+}
+
+// ── Affichage résultat ────────────────────────────────────────────────────────
+function showResult(data) {
+  const isSuspect = data.statut === "Suspect";
+  const panel     = document.getElementById("result-panel");
+  const ind       = data.indicateurs || {};
+  const raisons   = data.raisons || [];
+
+  panel.innerHTML = `
+    <div class="result-box ${isSuspect ? "suspect" : "normal"}">
+      <div class="result-icon">
+        ${isSuspect
+          ? `<svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+               <path d="M14 9v6M14 19h.01" stroke="#A32D2D" stroke-width="2" stroke-linecap="round"/>
+               <path d="M12.2 4.2L2.6 21a2 2 0 001.8 3h19.2a2 2 0 001.8-3L15.8 4.2a2 2 0 00-3.6 0z" stroke="#A32D2D" stroke-width="2" fill="none"/>
+             </svg>`
+          : `<svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+               <circle cx="14" cy="14" r="11" stroke="#27500A" stroke-width="2"/>
+               <path d="M9 14l3 3 6-6" stroke="#27500A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+             </svg>`}
+      </div>
+      <div class="result-label">${data.statut}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${data.note}</div>
+    </div>
+
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem;">
+      Compte <strong>${data.compte}</strong> — ${data.nb_tx} transaction(s) analysée(s)
+    </p>
+
+    <div class="indicators-grid">
+      <div class="ind-card ${parseFloat(ind.pct_nocturne||0)>0.4?"alert":""}">
+        <div class="ind-label">% nocturne</div>
+        <div class="ind-value">${((ind.pct_nocturne||0)*100).toFixed(1)}%</div>
+      </div>
+      <div class="ind-card ${parseFloat(ind.pct_weekend||0)>0.5?"alert":""}">
+        <div class="ind-label">% week-end</div>
+        <div class="ind-value">${((ind.pct_weekend||0)*100).toFixed(1)}%</div>
+      </div>
+      <div class="ind-card ${parseFloat(ind.velocite_maximale_km_h||0)>200?"alert":""}">
+        <div class="ind-label">Vélocité max</div>
+        <div class="ind-value">${(ind.velocite_maximale_km_h||0)>=99999?"∞ Impossible":Math.round(ind.velocite_maximale_km_h||0)+" km/h"}</div>
+      </div>
+      <div class="ind-card ${parseFloat(ind.ratio_tpe_moins_100||0)>0.6?"alert":""}">
+        <div class="ind-label">Ratio TPE &lt;100DT</div>
+        <div class="ind-value">${((ind.ratio_tpe_moins_100||0)*100).toFixed(1)}%</div>
+      </div>
+      <div class="ind-card">
+        <div class="ind-label">Montant moyen</div>
+        <div class="ind-value">${Math.round(ind.montant_moyen||0)} DT</div>
+      </div>
+      <div class="ind-card ${parseInt(ind.nb_lieux_differents||0)>3?"alert":""}">
+        <div class="ind-label">Lieux différents</div>
+        <div class="ind-value">${ind.nb_lieux_differents||0}</div>
+      </div>
+    </div>
+
+    ${raisons.length > 0 ? `
+    <div style="margin-top:0.5rem;">
+      <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${isSuspect?"var(--danger)":"var(--text-muted)"};margin-bottom:0.6rem;">
+        ${isSuspect?"⚠ Scénarios suspects déclenchés":"ℹ Indicateurs à surveiller"}
+      </p>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        ${raisons.map(r=>`<div style="background:${isSuspect?"#FDECEA":"#FEF3E2"};border-left:3px solid ${isSuspect?"var(--danger)":"var(--accent)"};border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:8px 12px;font-size:13px;color:var(--text);line-height:1.5;">${r}</div>`).join("")}
+      </div>
+    </div>` : (!isSuspect?`
+    <div style="background:#E6F4EC;border-left:3px solid var(--success);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:8px 12px;font-size:13px;color:var(--text);margin-top:0.5rem;">
+      ✓ Aucun scénario suspect détecté — comportement transactionnel normal.
+    </div>`:"") }
+  `;
+}
+
+// Démarrer en mode manuel avec une transaction vide
+addTransaction();
+</script>
+{% endblock %}

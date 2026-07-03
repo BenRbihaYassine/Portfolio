@@ -1,0 +1,824 @@
+{% extends "base.html" %}
+{% block title %}À propos — Détection des Transactions Suspectes{% endblock %}
+
+{% block extra_head %}
+<style>
+
+  /* ===== PAGE HEADER ===== */
+  .about-header {
+    background: var(--navy);
+    padding: 4rem 0 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .about-header::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(30,95,173,0.28) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .about-header::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 5%;
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(232,160,32,0.10) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .about-header .container { position: relative; z-index: 1; }
+  .about-header-label {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--accent); margin-bottom: 10px;
+  }
+  .about-header h1 {
+    font-family: var(--font-display);
+    font-size: 2.4rem; color: var(--white);
+    line-height: 1.15; margin-bottom: 12px;
+  }
+  .about-header p {
+    font-size: 15px; color: rgba(255,255,255,0.65);
+    max-width: 560px;
+  }
+
+  /* ===== SECTION LABEL ===== */
+  .section-label {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--blue); margin-bottom: 8px;
+  }
+
+  /* ===== CRISP-DM VERTICAL TIMELINE ===== */
+  .crisp-section { padding: 5rem 0; background: var(--white); }
+  .crisp-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 4rem;
+    align-items: start;
+    margin-top: 3rem;
+  }
+  .crisp-intro p {
+    font-size: 15px; color: var(--text-muted);
+    line-height: 1.75; margin-bottom: 1.25rem;
+  }
+  .crisp-intro strong { color: var(--navy); }
+
+  .crisp-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #E8F0FB; color: var(--blue);
+    font-size: 12px; font-weight: 600;
+    padding: 6px 14px; border-radius: 20px;
+    margin-top: 0.5rem;
+  }
+
+  /* Vertical timeline */
+  .vtimeline { position: relative; padding-left: 48px; }
+  .vtimeline::before {
+    content: '';
+    position: absolute;
+    left: 19px; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--gray-light);
+  }
+  .vt-step {
+    position: relative;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--gray-light);
+  }
+  .vt-step:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .vt-dot {
+    position: absolute;
+    left: -36px; top: 4px;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 14px; font-weight: 600;
+    border: 2px solid var(--white);
+    box-shadow: var(--shadow-sm);
+  }
+  .vt-dot.done    { background: var(--navy); color: var(--white); }
+  .vt-dot.current { background: var(--blue); color: var(--white); box-shadow: 0 0 0 4px rgba(30,95,173,0.18); }
+  .vt-phase {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--blue); margin-bottom: 4px;
+  }
+  .vt-title {
+    font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 6px;
+  }
+  .vt-desc {
+    font-size: 13px; color: var(--text-muted); line-height: 1.65;
+  }
+  .vt-tags {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+  }
+  .vt-tag {
+    font-size: 11px; font-weight: 500;
+    background: var(--off-white); color: var(--gray-dark);
+    padding: 3px 10px; border-radius: 12px;
+    border: 1px solid var(--gray-light);
+  }
+
+  /* ===== STACK TECHNIQUE ===== */
+  .stack-section { padding: 5rem 0; background: var(--off-white); }
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .stack-card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-light);
+    box-shadow: var(--shadow-sm);
+    padding: 1.75rem;
+    transition: all var(--transition);
+  }
+  .stack-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .stack-card-icon {
+    width: 48px; height: 48px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 22px;
+  }
+  .stack-card h3 {
+    font-size: 15px; font-weight: 600; color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .stack-card p {
+    font-size: 13px; color: var(--text-muted);
+    line-height: 1.6; margin-bottom: 1rem;
+  }
+  .stack-pills {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .pill {
+    font-size: 11px; font-weight: 500;
+    padding: 3px 10px; border-radius: 12px;
+    border: 1px solid transparent;
+  }
+  .pill-blue  { background: #E8F0FB; color: var(--blue);    border-color: #C5D8F5; }
+  .pill-red   { background: #FDECEA; color: var(--danger);  border-color: #F5C1BB; }
+  .pill-green { background: #E6F4EC; color: var(--success); border-color: #AADBBF; }
+  .pill-amber { background: #FEF3E2; color: #B45309;        border-color: #F5D9A8; }
+  .pill-navy  { background: rgba(11,31,58,0.07); color: var(--navy); border-color: rgba(11,31,58,0.15); }
+
+  /* ===== DONNÉES & FEATURES ===== */
+  .data-section { padding: 5rem 0; background: var(--white); }
+  .data-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+  .data-card {
+    background: var(--off-white);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-light);
+    padding: 1.75rem;
+  }
+  .data-card h3 {
+    font-size: 14px; font-weight: 600; color: var(--navy);
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .data-card-icon-sm {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feat-list {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .feat-item {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--gray-light);
+  }
+  .feat-item:last-child { border-bottom: none; }
+  .feat-name { color: var(--text); font-weight: 500; }
+  .feat-desc { color: var(--text-muted); font-size: 12px; text-align: right; max-width: 180px; }
+
+  .stat-list {
+    display: flex; flex-direction: column; gap: 1rem;
+  }
+  .stat-row {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .stat-bar-wrap { flex: 1; }
+  .stat-bar-label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--text-muted); margin-bottom: 4px;
+  }
+  .stat-bar-track {
+    height: 7px; background: var(--gray-light);
+    border-radius: 4px; overflow: hidden;
+  }
+  .stat-bar-fill { height: 100%; border-radius: 4px; }
+
+  /* ===== ÉQUIPE ===== */
+  .team-section { padding: 5rem 0; background: var(--off-white); }
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .team-card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-light);
+    box-shadow: var(--shadow-sm);
+    padding: 2rem 1.75rem;
+    text-align: center;
+    transition: all var(--transition);
+  }
+  .team-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .team-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+    font-family: var(--font-display);
+    font-size: 1.4rem; font-weight: 600;
+    border: 3px solid var(--white);
+    box-shadow: var(--shadow-sm);
+  }
+  .team-name {
+    font-size: 16px; font-weight: 600; color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .team-role {
+    font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--blue); margin-bottom: 8px;
+  }
+  .team-desc {
+    font-size: 13px; color: var(--text-muted);
+    line-height: 1.6; margin-bottom: 1rem;
+  }
+  .team-skills {
+    display: flex; flex-wrap: wrap; gap: 5px;
+    justify-content: center;
+  }
+
+  /* ===== CTA FINAL ===== */
+  .cta-about {
+    padding: 5rem 0;
+    background: var(--navy);
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .cta-about::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(30,95,173,0.22) 0%, transparent 70%);
+  }
+  .cta-about .container { position: relative; z-index: 1; }
+  .cta-about h2 {
+    font-family: var(--font-display);
+    font-size: 2.2rem; color: var(--white); margin-bottom: 1rem;
+  }
+  .cta-about p {
+    font-size: 15px; color: rgba(255,255,255,0.6);
+    max-width: 480px; margin: 0 auto 2rem;
+  }
+  .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  /* ===== FADE-IN ===== */
+  .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .crisp-grid  { grid-template-columns: 1fr; gap: 2.5rem; }
+    .stack-grid  { grid-template-columns: 1fr 1fr; }
+    .data-grid   { grid-template-columns: 1fr; }
+    .team-grid   { grid-template-columns: 1fr 1fr; }
+    .about-header h1 { font-size: 1.9rem; }
+  }
+  @media (max-width: 600px) {
+    .stack-grid { grid-template-columns: 1fr; }
+    .team-grid  { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+<section class="about-header">
+  <div class="container">
+    <div class="about-header-label">📋 Projet de Fin d'Études — 2025 / 2026</div>
+    <h1>À propos du projet</h1>
+    <p>Système intelligent de détection de fraude bancaire appliqué aux transactions tunisiennes, développé selon la méthodologie CRISP-DM.</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 1 — CRISP-DM
+════════════════════════════════════════════════════════ -->
+<section class="crisp-section">
+  <div class="container">
+    <div class="fade-in">
+      <p class="section-label">Méthodologie</p>
+      <h2 class="section-title">Processus CRISP-DM</h2>
+      <p class="section-subtitle">Cross-Industry Standard Process for Data Mining — 6 phases complètes</p>
+    </div>
+
+    <div class="crisp-grid">
+
+      <!-- Intro gauche -->
+      <div class="crisp-intro fade-in">
+        <p>
+          CRISP-DM est le standard industriel pour les projets de <strong>Data Mining et Machine Learning</strong>.
+          Il structure le travail en 6 phases itératives garantissant la qualité
+          et la reproductibilité des résultats.
+        </p>
+        <p>
+          Dans ce projet, chaque phase a été appliquée rigoureusement au contexte
+          bancaire tunisien, des données brutes jusqu'au déploiement de l'application web.
+        </p>
+        <p>
+          Le processus est <strong>itératif</strong> : les résultats de l'évaluation
+          (phase 5) ont conduit à plusieurs ajustements du feature engineering (phase 3)
+          et de la modélisation (phase 4).
+        </p>
+        <span class="crisp-badge">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11z" stroke="currentColor" stroke-width="1.3"/>
+            <path d="M7 4.5v3l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+          Toutes les phases complétées ✓
+        </span>
+      </div>
+
+      <!-- Timeline verticale droite -->
+      <div class="vtimeline fade-in">
+
+        <div class="vt-step">
+          <div class="vt-dot done">1</div>
+          <div class="vt-phase">Phase 1</div>
+          <div class="vt-title">Compréhension métier</div>
+          <div class="vt-desc">
+            Analyse du contexte bancaire tunisien, identification des typologies de fraude,
+            définition des objectifs de détection et des critères de succès.
+          </div>
+          <div class="vt-tags">
+            <span class="vt-tag">Fraude bancaire</span>
+            <span class="vt-tag">Règlements BCT</span>
+            <span class="vt-tag">KPIs définis</span>
+          </div>
+        </div>
+
+        <div class="vt-step">
+          <div class="vt-dot done">2</div>
+          <div class="vt-phase">Phase 2</div>
+          <div class="vt-title">Compréhension des données</div>
+          <div class="vt-desc">
+            Exploration du jeu de données (11 309 transactions, 26 gouvernorats),
+            analyse des distributions, détection des valeurs manquantes et
+            visualisation avec Power BI.
+          </div>
+          <div class="vt-tags">
+            <span class="vt-tag">EDA</span>
+            <span class="vt-tag">Power BI</span>
+            <span class="vt-tag">11 309 tx</span>
+          </div>
+        </div>
+
+        <div class="vt-step">
+          <div class="vt-dot done">3</div>
+          <div class="vt-phase">Phase 3</div>
+          <div class="vt-title">Préparation des données</div>
+          <div class="vt-desc">
+            Construction de 25 features agrégées par compte (vélocité géographique,
+            ratios temporels, patterns comportementaux), nettoyage et normalisation
+            avec StandardScaler.
+          </div>
+          <div class="vt-tags">
+            <span class="vt-tag">25 features</span>
+            <span class="vt-tag">StandardScaler</span>
+            <span class="vt-tag">Feature engineering</span>
+          </div>
+        </div>
+
+        <div class="vt-step">
+          <div class="vt-dot done">4</div>
+          <div class="vt-phase">Phase 4</div>
+          <div class="vt-title">Modélisation</div>
+          <div class="vt-desc">
+            Clustering non supervisé K-Means pour créer les labels, puis comparaison
+            de 7 algorithmes supervisés (Random Forest, XGBoost, SVM…) avec
+            SMOTE, GridSearchCV et sélection par Mutual Information.
+          </div>
+          <div class="vt-tags">
+            <span class="vt-tag">K-Means</span>
+            <span class="vt-tag">Random Forest</span>
+            <span class="vt-tag">SMOTE</span>
+            <span class="vt-tag">GridSearchCV</span>
+          </div>
+        </div>
+
+        <div class="vt-step">
+          <div class="vt-dot done">5</div>
+          <div class="vt-phase">Phase 5</div>
+          <div class="vt-title">Évaluation</div>
+          <div class="vt-desc">
+            Comparaison des modèles sur ROC-AUC, Recall, F1-Score et Precision.
+            Score composite pondéré (Recall ×0.4 + AUC ×0.35 + F1 ×0.15 + Precision ×0.10)
+            — Random Forest sélectionné meilleur modèle.
+          </div>
+          <div class="vt-tags">
+            <span class="vt-tag">ROC-AUC</span>
+            <span class="vt-tag">Recall prioritaire</span>
+            <span class="vt-tag">SHAP</span>
+          </div>
+        </div>
+
+        <div class="vt-step">
+          <div class="vt-dot current">6</div>
+          <div class="vt-phase">Phase 6 — En cours</div>
+          <div class="vt-title">Déploiement</div>
+          <div class="vt-desc">
+            Application web Flask avec API de prédiction, chatbot RAG + reconnaissance vocale
+            Vosk, dashboard Power BI et interface de simulation en temps réel.
+          </div>
+          <div class="vt-tags">
+            <span class="vt-tag">Flask</span>
+            <span class="vt-tag">RAG</span>
+            <span class="vt-tag">Vosk</span>
+            <span class="vt-tag">Power BI</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 2 — STACK TECHNIQUE
+════════════════════════════════════════════════════════ -->
+<section class="stack-section">
+  <div class="container">
+    <div class="fade-in">
+      <p class="section-label">Technologies</p>
+      <h2 class="section-title">Stack technique</h2>
+      <p class="section-subtitle">Outils et bibliothèques utilisés à chaque couche du système</p>
+    </div>
+
+    <div class="stack-grid">
+
+      <div class="stack-card fade-in">
+        <div class="stack-card-icon" style="background:#E8F0FB;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="var(--blue)" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Machine Learning</h3>
+        <p>Pipeline complet de détection : clustering non supervisé pour la labellisation, puis classification supervisée avec sélection de features.</p>
+        <div class="stack-pills">
+          <span class="pill pill-blue">scikit-learn</span>
+          <span class="pill pill-blue">K-Means</span>
+          <span class="pill pill-blue">Random Forest</span>
+          <span class="pill pill-blue">XGBoost</span>
+          <span class="pill pill-blue">SMOTE</span>
+          <span class="pill pill-blue">SHAP</span>
+        </div>
+      </div>
+
+      <div class="stack-card fade-in">
+        <div class="stack-card-icon" style="background:#E6F4EC;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="18" height="18" rx="2" stroke="var(--success)" stroke-width="1.5"/>
+            <path d="M8 12l3 3 5-5" stroke="var(--success)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Backend & API</h3>
+        <p>Serveur web Flask exposant l'API de prédiction, le chatbot RAG et les routes des templates Jinja2.</p>
+        <div class="stack-pills">
+          <span class="pill pill-green">Python 3.11</span>
+          <span class="pill pill-green">Flask</span>
+          <span class="pill pill-green">pandas</span>
+          <span class="pill pill-green">numpy</span>
+          <span class="pill pill-green">joblib</span>
+        </div>
+      </div>
+
+      <div class="stack-card fade-in">
+        <div class="stack-card-icon" style="background:#FDECEA;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v9a2 2 0 01-2 2H7l-4 4V5z" stroke="var(--danger)" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M8 10h8M8 13h5" stroke="var(--danger)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Chatbot RAG + Voix</h3>
+        <p>Chatbot à base de Retrieval-Augmented Generation avec reconnaissance vocale hors-ligne pour répondre aux questions sur les anomalies.</p>
+        <div class="stack-pills">
+          <span class="pill pill-red">RAG</span>
+          <span class="pill pill-red">Vosk</span>
+          <span class="pill pill-red">LangChain</span>
+          <span class="pill pill-red">FAISS</span>
+        </div>
+      </div>
+
+      <div class="stack-card fade-in">
+        <div class="stack-card-icon" style="background:#FEF3E2;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="7" height="9" rx="1" stroke="#B45309" stroke-width="1.5"/>
+            <rect x="14" y="3" width="7" height="5" rx="1" stroke="#B45309" stroke-width="1.5"/>
+            <rect x="14" y="12" width="7" height="9" rx="1" stroke="#B45309" stroke-width="1.5"/>
+            <rect x="3" y="16" width="7" height="5" rx="1" stroke="#B45309" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <h3>Visualisation & EDA</h3>
+        <p>Analyse exploratoire avec Power BI publié en ligne, complétée par matplotlib et seaborn dans les notebooks Jupyter.</p>
+        <div class="stack-pills">
+          <span class="pill pill-amber">Power BI</span>
+          <span class="pill pill-amber">matplotlib</span>
+          <span class="pill pill-amber">seaborn</span>
+          <span class="pill pill-amber">Jupyter</span>
+        </div>
+      </div>
+
+      <div class="stack-card fade-in">
+        <div class="stack-card-icon" style="background:rgba(11,31,58,0.07);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M4 4h16v12H4zM8 20h8M12 16v4" stroke="var(--navy)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Frontend</h3>
+        <p>Interface responsive en HTML/CSS/JS pur, templates Jinja2, sans framework JS — design banking professionnel.</p>
+        <div class="stack-pills">
+          <span class="pill pill-navy">HTML5</span>
+          <span class="pill pill-navy">CSS3</span>
+          <span class="pill pill-navy">JavaScript</span>
+          <span class="pill pill-navy">Jinja2</span>
+          <span class="pill pill-navy">DM Sans</span>
+        </div>
+      </div>
+
+      <div class="stack-card fade-in">
+        <div class="stack-card-icon" style="background:#E8F0FB;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="var(--blue)" stroke-width="1.5"/>
+            <path d="M12 8v4l3 3" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Données</h3>
+        <p>Jeu de données bancaires tunisiennes réelles, 11 309 transactions sur 26 gouvernorats, nettoyé et enrichi par feature engineering.</p>
+        <div class="stack-pills">
+          <span class="pill pill-blue">Excel / CSV</span>
+          <span class="pill pill-blue">openpyxl</span>
+          <span class="pill pill-blue">26 gouvernorats</span>
+          <span class="pill pill-blue">25 features</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 3 — DONNÉES & FEATURES
+════════════════════════════════════════════════════════ -->
+<section class="data-section">
+  <div class="container">
+    <div class="fade-in">
+      <p class="section-label">Données & Features</p>
+      <h2 class="section-title">Le jeu de données</h2>
+      <p class="section-subtitle">25 variables agrégées par compte, construites depuis les transactions brutes</p>
+    </div>
+
+    <div class="data-grid">
+
+      <!-- Features clés -->
+      <div class="data-card fade-in">
+        <h3>
+          <div class="data-card-icon-sm" style="background:#E8F0FB;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2 4h12M2 8h8M2 12h5" stroke="var(--blue)" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          Features principales
+        </h3>
+        <div class="feat-list">
+          <div class="feat-item">
+            <span class="feat-name">velocite_maximale_km_h</span>
+            <span class="feat-desc">Vitesse de déplacement max entre lieux</span>
+          </div>
+          <div class="feat-item">
+            <span class="feat-name">pct_nocturne</span>
+            <span class="feat-desc">% de transactions entre 22h et 6h</span>
+          </div>
+          <div class="feat-item">
+            <span class="feat-name">ratio_montant_max_min</span>
+            <span class="feat-desc">Écart entre le plus grand et plus petit montant</span>
+          </div>
+          <div class="feat-item">
+            <span class="feat-name">montants_croissants_consecutifs</span>
+            <span class="feat-desc">Longueur de la plus longue séquence croissante</span>
+          </div>
+          <div class="feat-item">
+            <span class="feat-name">changements_lieu_frequents</span>
+            <span class="feat-desc">Proportion de changements de lieu consécutifs</span>
+          </div>
+          <div class="feat-item">
+            <span class="feat-name">temps_min_entre_tx_min</span>
+            <span class="feat-desc">Délai minimal entre deux transactions (min)</span>
+          </div>
+          <div class="feat-item">
+            <span class="feat-name">ratio_tpe_moins_100</span>
+            <span class="feat-desc">% de paiements TPE inférieurs à 100 DT</span>
+          </div>
+          <div class="feat-item">
+            <span class="feat-name">tx_par_jour</span>
+            <span class="feat-desc">Nombre moyen de transactions par jour actif</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats dataset -->
+      <div class="data-card fade-in">
+        <h3>
+          <div class="data-card-icon-sm" style="background:#E6F4EC;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="8" width="3" height="6" rx="1" fill="var(--success)"/>
+              <rect x="6.5" y="5" width="3" height="9" rx="1" fill="var(--success)" opacity="0.7"/>
+              <rect x="11" y="2" width="3" height="12" rx="1" fill="var(--success)" opacity="0.5"/>
+            </svg>
+          </div>
+          Statistiques du dataset
+        </h3>
+        <div class="stat-list">
+          <div class="stat-row">
+            <div class="stat-bar-wrap">
+              <div class="stat-bar-label"><span>Transactions totales</span><span style="font-weight:600;color:var(--navy)">11 309</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width:100%;background:var(--blue);"></div></div>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-bar-wrap">
+              <div class="stat-bar-label"><span>Comptes suspects (K-Means)</span><span style="font-weight:600;color:var(--danger)">320 — 2.8%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width:2.8%;background:var(--danger);"></div></div>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-bar-wrap">
+              <div class="stat-bar-label"><span>Comptes normaux</span><span style="font-weight:600;color:var(--success)">2 519 — 97.2%</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width:97.2%;background:var(--success);"></div></div>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-bar-wrap">
+              <div class="stat-bar-label"><span>Couverture géographique</span><span style="font-weight:600;color:var(--navy)">26 / 26 gouvernorats</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width:100%;background:var(--accent);"></div></div>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-bar-wrap">
+              <div class="stat-bar-label"><span>Features retenues (MI)</span><span style="font-weight:600;color:var(--navy)">25 features</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width:100%;background:var(--navy-mid);"></div></div>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-bar-wrap">
+              <div class="stat-bar-label"><span>ROC-AUC Random Forest</span><span style="font-weight:600;color:var(--blue)">> 0.95</span></div>
+              <div class="stat-bar-track"><div class="stat-bar-fill" style="width:95%;background:var(--blue);"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 4 — ÉQUIPE
+════════════════════════════════════════════════════════ -->
+<section class="team-section">
+  <div class="container">
+    <div class="fade-in">
+      <p class="section-label">Équipe</p>
+      <h2 class="section-title">Réalisé par</h2>
+      <p class="section-subtitle">Projet de Fin d'Études — Master en Data Science For Business, 2025/2026</p>
+    </div>
+
+    <div class="team-grid">
+
+      <!-- Étudiant -->
+      <div class="team-card fade-in">
+        <div class="team-avatar" style="background:var(--navy);color:var(--white);">BY</div>
+        <div class="team-name">Ben Rbiha Yassine</div>
+        <div class="team-role">IA · Machine Learning · Data Science</div>
+        <div class="team-desc">
+          Conception et réalisation complète du projet : feature engineering, clustering K-Means,
+          comparaison de modèles supervisés (XGBoost, Random Forest…), chatbot RAG avec
+          reconnaissance vocale Vosk, et déploiement Flask.
+        </div>
+        <div class="team-skills">
+          <span class="pill pill-blue">Python</span>
+          <span class="pill pill-blue">scikit-learn</span>
+          <span class="pill pill-blue">XGBoost</span>
+          <span class="pill pill-blue">LangChain</span>
+          <span class="pill pill-blue">Flask</span>
+          <span class="pill pill-blue">Vosk</span>
+        </div>
+      </div>
+
+      <!-- Encadrant professionnel -->
+      <div class="team-card fade-in">
+        <div class="team-avatar" style="background:var(--accent);color:var(--navy);">NH</div>
+        <div class="team-name">Noomen Habassi</div>
+        <div class="team-role">Encadrant professionnel</div>
+        <div class="team-desc">
+          Encadrement professionnel au sein de BH Bank, définition des scénarios de fraude,
+          validation des règles métier et des labels d'anomalies transactionnelles.
+        </div>
+        <div class="team-skills">
+          <span class="pill pill-amber">BH Bank</span>
+          <span class="pill pill-amber">Fraude bancaire</span>
+          <span class="pill pill-amber">Métier</span>
+        </div>
+      </div>
+
+      <!-- Encadrant académique -->
+      <div class="team-card fade-in">
+        <div class="team-avatar" style="background:var(--success);color:var(--white);">KC</div>
+        <div class="team-name">Katar Chakar</div>
+        <div class="team-role">Encadrant académique</div>
+        <div class="team-desc">
+          Supervision académique du projet, validation de la méthodologie CRISP-DM,
+          orientation des choix algorithmiques et suivi de l'évaluation des modèles.
+        </div>
+        <div class="team-skills">
+          <span class="pill pill-green">CRISP-DM</span>
+          <span class="pill pill-green">Data Mining</span>
+          <span class="pill pill-green">Supervision</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     CTA FINAL
+════════════════════════════════════════════════════════ -->
+<section class="cta-about">
+  <div class="container">
+    <h2>Explorer le système</h2>
+    <p>Testez la simulation en temps réel ou explorez les visualisations dans le dashboard.</p>
+    <div class="cta-btns">
+      <a href="/simulation" class="btn btn-accent" style="font-size:15px;padding:13px 28px;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M5.5 8l2 2 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Lancer une simulation
+      </a>
+      <a href="/dashboard" class="btn btn-outline" style="border-color:rgba(255,255,255,0.3);color:var(--white);font-size:15px;padding:13px 28px;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="2" y="2" width="5" height="7" rx="1" stroke="currentColor" stroke-width="1.4"/>
+          <rect x="9" y="2" width="5" height="4" rx="1" stroke="currentColor" stroke-width="1.4"/>
+          <rect x="9" y="8" width="5" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/>
+          <rect x="2" y="11" width="5" height="3" rx="1" stroke="currentColor" stroke-width="1.4"/>
+        </svg>
+        Voir le dashboard
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+{% endblock %}
