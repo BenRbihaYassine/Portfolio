@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Historique — Résumeur{% endblock %}
+
+{% block content %}
+<section class="intro">
+    <h1>Historique des résumés</h1>
+    <p class="subtitle">{{ resumes|length }} article{{ 's' if resumes|length != 1 else '' }} résumé{{ 's' if resumes|length != 1 else '' }} jusqu'ici.</p>
+</section>
+
+{% if resumes %}
+<div class="history-list">
+    {% for r in resumes %}
+    <article class="history-item">
+        <div class="result-meta">
+            <span class="meta-domain">{{ r.url.split('/')[2] if r.url else '' }}</span>
+            <span class="meta-dot">·</span>
+            <span class="meta-date">{{ r.summarized_at[:10] if r.summarized_at else '' }}</span>
+        </div>
+        <h3 class="history-title">
+            <a href="{{ r.url }}" target="_blank" rel="noopener">{{ r.title }}</a>
+        </h3>
+        <p class="history-summary">{{ r.summary }}</p>
+        <div class="history-stats">{{ r.original_length }} → {{ r.summary_length }} mots</div>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <p>Aucun résumé pour l'instant. <a href="{{ url_for('index') }}">Résume ton premier article →</a></p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="intro">
+    <h1>Colle une URL, obtiens l'essentiel.</h1>
+    <p class="subtitle">Un article de presse en français, résumé en quelques secondes.</p>
+</section>
+
+<form method="POST" class="url-form" id="summarize-form">
+    <input type="url" name="url" id="url-input" placeholder="https://www.lemonde.fr/..." value="{{ url_soumise }}" required>
+    <button type="submit" id="submit-btn">Résumer</button>
+</form>
+<div class="progress-bar" id="progress-bar" hidden><div class="progress-bar-fill"></div></div>
+
+{% if resultat %}
+    {% if resultat.success %}
+    <article class="result-card">
+        <div class="result-meta">
+            <span class="meta-domain">{{ resultat.url.split('/')[2] }}</span>
+            <span class="meta-dot">·</span>
+            <a href="{{ resultat.url }}" target="_blank" rel="noopener" class="meta-link">Voir l'article original ↗</a>
+        </div>
+
+        <h2 class="result-title">{{ resultat.title }}</h2>
+        <p class="result-summary" id="summary-text">{{ resultat.summary }}</p>
+
+        <div class="compression">
+            <div class="compression-stats">
+                <span class="stat"><strong>{{ resultat.original_length }}</strong> mots</span>
+                <span class="stat-arrow">→</span>
+                <span class="stat"><strong>{{ resultat.summary_length }}</strong> mots</span>
+            </div>
+            <div class="compression-gauge">
+                <div class="compression-gauge-fill" style="--target: {{ resultat.compression }}%"></div>
+            </div>
+            <span class="compression-badge">-{{ resultat.compression }}%</span>
+        </div>
+
+        <button class="copy-btn" id="copy-btn" type="button">Copier le résumé</button>
+    </article>
+    {% else %}
+    <div class="result-card result-error">
+        <p>{{ resultat.error }}</p>
+    </div>
+    {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const form = document.getElementById('summarize-form');
+    const btn = document.getElementById('submit-btn');
+    const bar = document.getElementById('progress-bar');
+    if (form) {
+        form.addEventListener('submit', () => {
+            btn.disabled = true;
+            btn.textContent = 'Résumé en cours…';
+            bar.hidden = false;
+        });
+    }
+
+    const copyBtn = document.getElementById('copy-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+            const text = document.getElementById('summary-text').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const original = copyBtn.textContent;
+                copyBtn.textContent = 'Copié ✓';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = original;
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            });
+        });
+    }
+</script>
+{% endblock %}
