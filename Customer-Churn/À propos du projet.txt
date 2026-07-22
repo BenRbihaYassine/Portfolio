@@ -1,0 +1,67 @@
+À propos du projet
+
+Ce projet consiste en la conception d'un tableau de bord interactif sous Power BI, destiné à analyser le taux d'attrition (churn) des clients d'une banque européenne. L'objectif est d'identifier les facteurs de risque associés au départ des clients, afin d'orienter des actions de rétention ciblées.
+
+Ce projet a été réalisé dans une démarche d'auto-formation à Power BI, en complément de mon Mastère professionnel en Data Science, et dans la continuité thématique de mon PFE réalisé chez BH Bank (détection de transactions bancaires suspectes par IA).
+
+Objectifs
+
+Objectif principal : Identifier les facteurs de risque de churn et les segments de clients les plus exposés, pour orienter les actions de rétention de la banque.
+
+Questions business auxquelles le dashboard répond :
+
+Quel est le taux de churn global de la banque ?
+Le churn varie-t-il selon le pays (France, Allemagne, Espagne) ?
+Le churn varie-t-il selon l'âge et le genre des clients ?
+Les clients avec un solde élevé partent-ils plus ou moins que les autres ?
+Le nombre de produits souscrits influence-t-il la fidélité client ?
+Les membres "actifs" churnent-ils moins que les membres inactifs ?
+Le score de crédit est-il lié à la probabilité de churn ?
+
+
+Source de données
+Dataset : Bank Customer Churn (10 000 clients d'une banque européenne)
+Format : CSV, table unique
+Variables principales : CustomerId, CreditScore, Geography, Gender, Age, Tenure, Balance, NumOfProducts, HasCrCard, IsActiveMember, EstimatedSalary, Exited (variable cible du churn)
+🛠️ Méthodologie
+1. Préparation des données (Power Query)
+Import du fichier CSV
+Vérification et correction des types de colonnes (numériques, texte)
+Contrôle qualité des données (valeurs manquantes, cohérence des formats)
+2. Modélisation (DAX)
+
+Mesures créées (organisées en dossiers d'affichage : KPIs, Finances, Engagement) :
+
+Total Clients — nombre total de clients
+Clients Churned — nombre de clients ayant quitté la banque
+Taux de Churn — proportion de clients partis
+Solde Moyen, Salaire Moyen, Score Credit Moyen
+Taux Membres Actifs — proportion de clients engagés
+
+Colonnes calculées pour la segmentation :
+
+Tranche Age — regroupement en tranches (18-29, 30-39, 40-49, 50-59, 60+)
+Segment Solde — regroupement par niveau de solde (nul, faible, moyen, élevé)
+Tranche Score Credit — regroupement par niveau de solvabilité
+Statut Churn / Statut Membre — traduction des indicateurs binaires (0/1) en libellés lisibles
+
+Des colonnes de tri numériques dédiées ont été ajoutées pour garantir un ordre logique des catégories dans les visuels (plutôt que le tri alphabétique par défaut de Power BI).
+
+3. Conception du dashboard
+
+Le rapport est structuré en deux pages, chacune avec un objectif distinct :
+
+Page 1 — Vue d'ensemble KPIs clés, répartition du churn par pays, proportion clients actifs vs partis. Destinée à donner une lecture rapide de la situation globale.
+
+Page 2 — Facteurs de churn Analyse croisée du churn selon l'âge, le nombre de produits souscrits, le segment de solde, le score de crédit et le statut d'engagement. Segments interactifs (pays, genre) permettant le croisement dynamique des analyses.
+
+Principaux insights
+Les clients âgés de 40 à 59 ans présentent un taux de churn nettement supérieur aux autres tranches d'âge.
+Contre-intuitivement, les clients possédant 3 ou 4 produits bancaires affichent un taux de churn plus élevé que ceux avec 1 ou 2 produits — signe d'une possible insatisfaction malgré un engagement fort.
+Le statut de membre actif est fortement corrélé à la rétention : les clients inactifs churnent significativement plus.
+Le score de crédit apparaît comme un facteur secondaire, avec une corrélation plus faible au churn que l'âge ou l'engagement.
+
+Outils et technologies utilisés
+Power BI Desktop (Power Query, modélisation de données, DAX)
+DAX pour les mesures et colonnes calculées
+Dataset public (Kaggle / Maven Analytics)
